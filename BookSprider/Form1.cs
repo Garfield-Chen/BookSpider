@@ -28,10 +28,20 @@ namespace BookSprider
                 _page2 = Regex.Replace(_page2, @"\s", "");
             }
 
-            public string _name1;
-            public string _page1;
-            public string _name2;
-            public string _page2;
+            public void Repair_zaidu_la()
+            {
+                int _s = _page1.IndexOf("】，");
+                int _e = _page1.IndexOf("加入书签");
+                char[] _tmpBuf = new char[_e - (_s + 12)];
+                _page1.CopyTo(_s + 12, _tmpBuf, 0, _e - (_s + 12));
+                _page1 = new string(_tmpBuf);
+                //_page1 = _page1.Replace(", " ");
+            }
+
+            public string _name1 = "";
+            public string _page1 = "";
+            public string _name2 = "";
+            public string _page2 = "";
         }
 
         public Form1()
@@ -43,7 +53,7 @@ namespace BookSprider
 
         List<ChapterNode> ChapterList = new List<ChapterNode>();
 
-        void Page1(int _index)
+        void Page1_www_ldks_cc(int _index)
         {
             string _link = string.Format("https://www.ldks.cc{0}", PageLinkList[_index]);
             WebClient MyWebClient = new WebClient();
@@ -64,10 +74,10 @@ namespace BookSprider
 
             _node._page1 = _n2.InnerText;
 
-            Page2(ref _node,_index);
+            Page2_www_ldks_cc(ref _node,_index);
         }
 
-        void Page2(ref ChapterNode _node,int _index)
+        void Page2_www_ldks_cc(ref ChapterNode _node,int _index)
         {
             string _link = string.Format("https://www.ldks.cc{0}", PageLinkList[_index]);
             _link = _link.Replace(".html", "_2.html");
@@ -88,10 +98,10 @@ namespace BookSprider
 
             _node.Repair();
             ChapterList.Add(_node);
-            ShowChapter(ChapterList.Count - 1);
+            ShowChapter_www_ldks_cc(ChapterList.Count - 1);
         }
 
-        void ShowChapter(int _index)
+        void ShowChapter_www_ldks_cc(int _index)
         {
             textBox1.Text = "";
             textBox1.AppendText(ChapterList[_index]._name1 + "\r\n");
@@ -100,8 +110,9 @@ namespace BookSprider
             textBox1.AppendText(ChapterList[_index]._page2 + "\r\n");
         }
 
-        void GetList(string _html)
+        void GetList_www_ldks_cc(string _html)
         {
+            ChapterList.Clear();
             PageLinkList.Clear();
             listBox1.Items.Clear();
 
@@ -151,7 +162,7 @@ namespace BookSprider
                                                                   //string pageHtml = Encoding.UTF8.GetString(pageData); //如果获取网站页面采用的是UTF-8，则使用这句
                                                                   //Console.WriteLine(pageHtml);//在控制台输入获取的内容
 
-            GetList(pageHtml);
+            GetList_www_ldks_cc(pageHtml);
             //textBox1.Text = pageHtml;
 
 
@@ -171,13 +182,13 @@ namespace BookSprider
         {
             if(listBox1.SelectedIndex >= 0)
             {
-                Page1(listBox1.SelectedIndex);
+                //Page1_www_ldks_cc(listBox1.SelectedIndex);
             }
         }
 
-        void Save()
+        void Save_www_ldks_cc()
         {
-            string filePath = Directory.GetCurrentDirectory() + "\\" + Process.GetCurrentProcess().ProcessName + ".txt";
+            string filePath = Directory.GetCurrentDirectory() + "\\" + Process.GetCurrentProcess().ProcessName + "www_ldks_cc.txt";
             if (File.Exists(filePath))
                 File.Delete(filePath);
 
@@ -186,7 +197,7 @@ namespace BookSprider
 
             for (int i = 0; i < PageLinkList.Count; i++)
             {
-                Page1(i);
+                Page1_www_ldks_cc(i);
 
                 if ( i < ChapterList.Count)
                 {
@@ -203,7 +214,7 @@ namespace BookSprider
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Save();
+            Save_www_ldks_cc();
         }
 
         void sss()
@@ -275,6 +286,171 @@ namespace BookSprider
 
             
 
+        }
+
+        void Page1_www_zaidu_la(int _index)
+        {
+            string _link = string.Format("https://www.zaidu.la{0}", PageLinkList[_index]);
+            WebClient MyWebClient = new WebClient();
+            MyWebClient.Credentials = CredentialCache.DefaultCredentials;//获取或设置用于向Internet资源的请求进行身份验证的网络凭据
+            Byte[] pageData = MyWebClient.DownloadData(_link); //从指定网站下载数据
+            string pageHtml = Encoding.UTF8.GetString(pageData);
+
+            HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+            doc.LoadHtml(pageHtml);
+
+            HtmlAgilityPack.HtmlNode _n1 = doc.DocumentNode.SelectSingleNode("//div[@class='zhangjieTXT']");
+
+            ChapterList[_index]._page1 = _n1.InnerText;
+
+
+            ChapterList[_index].Repair_zaidu_la();
+            ChapterList[_index].Repair();
+
+            ShowChapter_www_zaidu_la(_index);
+        }
+
+        void ShowChapter_www_zaidu_la(int _index)
+        {
+            textBox1.Text = "";
+            textBox1.AppendText(ChapterList[_index]._name1 + "\r\n");
+            textBox1.AppendText(ChapterList[_index]._page1 + "\r\n");
+        }
+
+        void GetList_www_zaidu_la(string _html)
+        {
+            ChapterList.Clear();
+            PageLinkList.Clear();
+            listBox1.Items.Clear();
+
+            HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+            doc.LoadHtml(_html);
+
+            HtmlAgilityPack.HtmlNode _n = doc.DocumentNode.SelectSingleNode("//div[@class='box_con']//div[@id='list']");
+            //textBox1.Text = _n.InnerHtml;
+
+            HtmlAgilityPack.HtmlDocument doc2 = new HtmlAgilityPack.HtmlDocument();
+            doc2.LoadHtml(_n.InnerHtml);
+
+            HtmlAgilityPack.HtmlNodeCollection _n2 = doc2.DocumentNode.SelectNodes("//dd");
+
+            bool _begin = false;
+            foreach (HtmlAgilityPack.HtmlNode _node in _n2)
+            {
+                string _ht = _node.OuterHtml;
+                
+//                 if (_ht.IndexOf("上架感言") >= 0)
+//                 {
+//                     continue;
+//                 }
+
+                if (_ht.IndexOf("0001 赔我一条裤子") >= 0)
+                {
+                    _begin = true;
+                }
+
+                if (!_begin)
+                {
+                    continue;
+                }
+
+                if (_ht.IndexOf("=\"") > 0 && _ht.IndexOf("\">") > 0)
+                {
+                    int _s1 = _ht.IndexOf("href=");
+                    int _e1 = _ht.IndexOf("\">");
+
+                    char[] _link = new char[_e1 - _s1 - 6];
+                    _ht.CopyTo(_s1 + 6, _link, 0, _e1 - _s1 - 6);
+
+                    string _link_str = new string(_link);
+
+                    PageLinkList.Add(_link_str);
+
+                    string _listtxt = string.Format("{0} [{1}]", _node.InnerText, _link_str);
+
+                    ChapterNode _chapterNode = new ChapterNode();
+                    _chapterNode._name1 = _node.InnerText;
+
+                    ChapterList.Add(_chapterNode);
+
+                    int _idx = listBox1.Items.Add(_listtxt);
+                    _idx++;
+//                     if (_ht.IndexOf(_idx.ToString()) < 0)
+//                     {
+// 
+//                     }
+                    //textBox1.AppendText(_link_str + "\r\n");
+                }
+                else if (_ht.IndexOf("='") > 0 && _ht.IndexOf("'>") > 0)
+                {
+                    int _s1 = _ht.IndexOf("href=");
+                    int _e1 = _ht.IndexOf("'>");
+
+                    char[] _link = new char[_e1 - _s1 - 6];
+                    _ht.CopyTo(_s1 + 6, _link, 0, _e1 - _s1 - 6);
+
+                    string _link_str = new string(_link);
+
+                    PageLinkList.Add(_link_str);
+
+                    string _listtxt = string.Format("{0} [{1}]", _node.InnerText, _link_str);
+
+                    ChapterNode _chapterNode = new ChapterNode();
+                    _chapterNode._name1 = _node.InnerText;
+
+                    ChapterList.Add(_chapterNode);
+
+                    int _idx = listBox1.Items.Add(_listtxt);
+                    _idx++;
+//                     if (_ht.IndexOf(_idx.ToString()) < 0)
+//                     {
+// 
+//                     }
+                    //textBox1.AppendText(_link_str + "\r\n");
+                }
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            WebClient MyWebClient = new WebClient();
+            MyWebClient.Credentials = CredentialCache.DefaultCredentials;//获取或设置用于向Internet资源的请求进行身份验证的网络凭据
+            Byte[] pageData = MyWebClient.DownloadData("https://www.zaidu.la/zaidu221881/"); //从指定网站下载数据
+            string pageHtml = Encoding.UTF8.GetString(pageData);  //如果获取网站页面采用的是GB2312，则使用这句    
+                                                                  //string pageHtml = Encoding.UTF8.GetString(pageData); //如果获取网站页面采用的是UTF-8，则使用这句
+                                                                  //Console.WriteLine(pageHtml);//在控制台输入获取的内容
+
+            GetList_www_zaidu_la(pageHtml);
+        }
+
+        void Save_www_zaidu_la()
+        {
+            string filePath = Directory.GetCurrentDirectory() + "\\" + Process.GetCurrentProcess().ProcessName + "www_zaidu_la.txt";
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+
+            FileStream fs = new FileStream(filePath, FileMode.Create);
+            StreamWriter _writer = new StreamWriter(fs);
+
+            for (int i = 0; i < PageLinkList.Count; i++)
+            {
+                Page1_www_zaidu_la(i);
+
+                if (i < ChapterList.Count)
+                {
+                    _writer.WriteLine(ChapterList[i]._name1);
+                    _writer.WriteLine(ChapterList[i]._page1);
+                    _writer.Flush();
+                }
+            }
+
+            _writer.Close();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            Save_www_zaidu_la();
+            //Page1_www_zaidu_la(0);
         }
     }
 }
