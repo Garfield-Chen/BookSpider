@@ -38,6 +38,15 @@ namespace BookSprider
                 //_page1 = _page1.Replace(", " ");
             }
 
+            public void Repair_NBSP_MDASH()
+            {
+                _page1 = _page1.Replace("&nbsp;", " ");
+                _page2 = _page2.Replace("&nbsp;", " ");
+
+                _page1 = _page1.Replace("&mdash;", "-");
+                _page2 = _page2.Replace("&mdash;", "-");
+            }
+            
             public string _name1 = "";
             public string _page1 = "";
             public string _name2 = "";
@@ -451,6 +460,163 @@ namespace BookSprider
         {
             Save_www_zaidu_la();
             //Page1_www_zaidu_la(0);
+        }
+
+        void GetList_www_biquge_info(string _html)
+        {
+            ChapterList.Clear();
+            PageLinkList.Clear();
+            listBox1.Items.Clear();
+
+            HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+            doc.LoadHtml(_html);
+
+            HtmlAgilityPack.HtmlNode _n = doc.DocumentNode.SelectSingleNode("//div[@class='box_con']//div[@id='list']");
+            //textBox1.Text = _n.InnerHtml;
+
+            HtmlAgilityPack.HtmlDocument doc2 = new HtmlAgilityPack.HtmlDocument();
+            doc2.LoadHtml(_n.InnerHtml);
+
+            HtmlAgilityPack.HtmlNodeCollection _n2 = doc2.DocumentNode.SelectNodes("//dd");
+
+            bool _begin = false;
+            foreach (HtmlAgilityPack.HtmlNode _node in _n2)
+            {
+                string _ht = _node.OuterHtml;
+
+                //                 if (_ht.IndexOf("上架感言") >= 0)
+                //                 {
+                //                     continue;
+                //                 }
+
+                if (_ht.IndexOf("0001 赔我一条裤子") >= 0)
+                {
+                    _begin = true;
+                }
+
+                if (!_begin)
+                {
+                    continue;
+                }
+
+                if (_ht.IndexOf("=\"") > 0 && _ht.IndexOf("\">") > 0)
+                {
+                    int _s1 = _ht.IndexOf("href=");
+                    int _e1 = _ht.IndexOf("\" title");
+
+                    char[] _link = new char[_e1 - _s1 - 6];
+                    _ht.CopyTo(_s1 + 6, _link, 0, _e1 - _s1 - 6);
+
+                    string _link_str = new string(_link);
+
+                    PageLinkList.Add(_link_str);
+
+                    string _listtxt = string.Format("{0} [{1}]", _node.InnerText, _link_str);
+
+                    ChapterNode _chapterNode = new ChapterNode();
+                    _chapterNode._name1 = _node.InnerText;
+
+                    ChapterList.Add(_chapterNode);
+
+                    int _idx = listBox1.Items.Add(_listtxt);
+
+                    //Page1_www_biquge_info(_idx);
+                }
+            }
+        }
+
+        void Page1_www_biquge_info(int _index)
+        {
+            string _link = string.Format("https://www.biquge.info/55_55472/{0}", PageLinkList[_index]);
+            WebClient MyWebClient = new WebClient();
+            MyWebClient.Credentials = CredentialCache.DefaultCredentials;//获取或设置用于向Internet资源的请求进行身份验证的网络凭据
+            Byte[] pageData = MyWebClient.DownloadData(_link); //从指定网站下载数据
+            string pageHtml = Encoding.UTF8.GetString(pageData);
+
+            HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+            doc.LoadHtml(pageHtml);
+
+            HtmlAgilityPack.HtmlNode _n1 = doc.DocumentNode.SelectSingleNode("//div[@id='content']");
+
+            ChapterList[_index]._page1 = _n1.InnerText;
+
+            ChapterList[_index].Repair_NBSP_MDASH();
+            ChapterList[_index].Repair();
+
+            ShowChapter_www_biquge_info(_index);
+        }
+
+        void ShowChapter_www_biquge_info(int _index)
+        {
+            textBox1.Text = "";
+            textBox1.AppendText(ChapterList[_index]._name1 + "\r\n");
+            textBox1.AppendText(ChapterList[_index]._page1 + "\r\n");
+
+            toolStripStatusLabel1.Text = string.Format("State: {0} / {1}", _index, PageLinkList.Count);
+            statusStrip1.Refresh();
+        }
+
+        void Save_www_biquge_info()
+        {
+            string filePath = Directory.GetCurrentDirectory() + "\\" + Process.GetCurrentProcess().ProcessName + "_www_biquge_info.txt";
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+
+            FileStream fs = new FileStream(filePath, FileMode.Create);
+            StreamWriter _writer = new StreamWriter(fs);
+
+            for (int i = 0; i < PageLinkList.Count; i++)
+            {
+                Page1_www_biquge_info(i);
+
+                if (i < ChapterList.Count)
+                {
+                    _writer.WriteLine(ChapterList[i]._name1);
+                    _writer.WriteLine(ChapterList[i]._page1);
+                    _writer.Flush();
+                }
+            }
+
+            _writer.Close();
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            
+
+            //"正在手打中，稍后即将更新！"
+            string filePath = Directory.GetCurrentDirectory() + "\\" + Process.GetCurrentProcess().ProcessName + "www_zaidu_la.txt";
+            FileStream fs = new FileStream(filePath, FileMode.Open);
+            StreamReader _reader = new StreamReader(fs);
+            
+            while (_reader.EndOfStream == false)
+            {
+                string _linename = _reader.ReadLine();
+                string _linetxt = _reader.ReadLine();
+
+                if (_linetxt == "正在手打中，稍后即将更新！")
+                {
+                    
+                }
+            }
+
+            _reader.Close();
+            //StreamWriter _writer = new StreamWriter(fs);
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            WebClient MyWebClient = new WebClient();
+            MyWebClient.Credentials = CredentialCache.DefaultCredentials;//获取或设置用于向Internet资源的请求进行身份验证的网络凭据
+            Byte[] pageData = MyWebClient.DownloadData("https://www.biquge.info/55_55472/"); //从指定网站下载数据
+            string pageHtml = Encoding.UTF8.GetString(pageData);
+
+            GetList_www_biquge_info(pageHtml);
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            Save_www_biquge_info();
         }
     }
 }
